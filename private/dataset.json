@@ -8,7 +8,7 @@
         "addresses": [
             {
                 "id": 1,
-                "address_line_1": "8 Coronation Street",
+                "address_line_1": "1 Coronation Street",
                 "address_line_2": "",
                 "address_line_3": "",
                 "city": "Manchester",
@@ -26,13 +26,23 @@
         "email": "jason.grimshaw@corrie.co.uk",
         "addresses": [
             {
-                "id": 2,
-                "address_line_1": "The Garage",
-                "address_line_2": "Victoria Street",
+                "id": 1,
+                "address_line_1": "2 Coronation Street",
+                "address_line_2": "",
                 "address_line_3": "",
                 "city": "Manchester",
                 "county": "Greater Manchester",
-                "postcode": "M1 1CC",
+                "postcode": "M1 1AA",
+                "country": "United Kingdom"
+            },
+            {
+                "id": 2,
+                "address_line_1": "3 Coronation Street",
+                "address_line_2": "",
+                "address_line_3": "",
+                "city": "Manchester",
+                "county": "Greater Manchester",
+                "postcode": "M1 1AA",
                 "country": "United Kingdom"
             }
         ]
@@ -53,9 +63,9 @@
         "email": "rita.sullivan@corrie.co.uk",
         "addresses": [
             {
-                "id": 1,
-                "address_line_1": "The Kabin",
-                "address_line_2": "Coronation Street",
+                "id": 3,
+                "address_line_1": "4 Coronation Street",
+                "address_line_2": "",
                 "address_line_3": "",
                 "city": "Manchester",
                 "county": "Greater Manchester",
