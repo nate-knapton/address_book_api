@@ -10,6 +10,8 @@ if (empty($_GET['user_id']) || !is_numeric($_GET['user_id'])) {
 
 $userId = $_GET['user_id'] ?? null;
 
+$addressData = $_POST;
+
 // Validate required fields
 $requiredFields = ['address_line_1', 'city', 'postcode', 'country'];
 foreach ($requiredFields as $field) {
