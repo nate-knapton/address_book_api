@@ -4,11 +4,22 @@ namespace Models;
 
 class UserModel extends BaseModel
 {
+    private int $id;
     private string $firstName = '';
     private string $lastName = '';
     private string $phone = '';
     private string $email = '';
     private array $addresses = [];
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
 
     public function getFirstName(): string
     {
