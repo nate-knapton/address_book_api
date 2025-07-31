@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Book Dashboard</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Import and combine all components
+        // Note: In a real project, you'd use a bundler like Webpack or Vite
+        
+        // Header Component (from components/Header.js)
+        const Header = ({ 
+            title = "Address Book Dashboard", 
+            subtitle = "Enter an email address to get started",
+            showBackButton = false,
+            backButtonText = "← Back to Login",
+            backButtonUrl = "../index.html"
+        }) => {
+            return (
+                <div className="header">
+                    {showBackButton && (
+                        <button 
+                            className="back-button" 
+                            onClick={() => window.location.href = backButtonUrl}
+                        >
+                            {backButtonText}
+                        </button>
+                    )}
+                    <h1>{title}</h1>
+                    <p>{subtitle}</p>
+                </div>
+            );
+        };
+
+        // Message Component (from components/Message.js)
+        const Message = ({ message, type = 'info', show = false }) => {
+            if (!show) return null;
+            
+            return (
+                <div className={`message ${type}`}>
+                    {message}
+                </div>
+            );
+        };
+
+        // EmailInput Component (from components/inputs/EmailInput.js)
+        const EmailInput = ({ 
+            email, 
+            onChange, 
+            disabled = false, 
+            hasError = false,
+            placeholder = "Enter your email address",
+            label = "Email Address"
+        }) => {
+            return (
+                <div className={`input-group ${hasError ? 'error' : ''}`}>
+                    <label htmlFor="email">{label}</label>
+                    <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={onChange}
+                        placeholder={placeholder}
+                        disabled={disabled}
+                        autoComplete="email"
+                    />
+                </div>
+            );
+        };
+
+        // SubmitButton Component (from components/buttons/SubmitButton.js)
+        const SubmitButton = ({ 
+            children, 
+            loading = false, 
+            disabled = false, 
+            loadingText = "Loading..." 
+        }) => {
+            return (
+                <button 
+                    type="submit" 
+                    className="submit-button"
+                    disabled={loading || disabled}
+                >
+                    {loading ? loadingText : children}
+                </button>
+            );
+        };
+
+        // EmailForm Container Component (from components/EmailForm.js)
+        const EmailForm = () => {
+            const { useState } = React;
+            
+            const [email, setEmail] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [message, setMessage] = useState('');
+            const [messageType, setMessageType] = useState('');
+
+            const validateEmail = (email) => {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                
+                if (!validateEmail(email)) {
+                    setMessage('Please enter a valid email address');
+                    setMessageType('error');
+                    return;
+                }
+
+                setLoading(true);
+
+                try {
+                    const response = await fetch('http://localhost/address_book_api/user/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `email=${encodeURIComponent(email)}`
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.success && result.data) {
+                        // Store user data in localStorage
+                        localStorage.setItem('currentUser', JSON.stringify(result.data));
+                        
+                        setMessage('Login successful! Redirecting to addresses...');
+                        setMessageType('success');
+                        
+                        // Redirect to addresses page after a short delay
+                        setTimeout(() => {
+                            window.location.href = './addresses/index.html';
+                        }, 1500);
+                    } else {
+                        setMessage('Login failed. Please check your email address.');
+                        setMessageType('error');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    setMessage('An error occurred. Please try again.');
+                    setMessageType('error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleEmailChange = (e) => {
+                setEmail(e.target.value);
+            };
+
+            const hasEmailError = messageType === 'error' && !validateEmail(email) && email;
+
+            return (
+                <div className="container">
+                    <Header />
+
+                    <form onSubmit={handleSubmit}>
+                        <EmailInput
+                            email={email}
+                            onChange={handleEmailChange}
+                            disabled={loading}
+                            hasError={hasEmailError}
+                        />
+
+                        <SubmitButton
+                            loading={loading}
+                            loadingText="Submitting..."
+                        >
+                            Submit Email
+                        </SubmitButton>
+                    </form>
+
+                    <Message
+                        message={message}
+                        type={messageType}
+                        show={!!message}
+                    />
+                </div>
+            );
+        };
+
+        // Main App Component
+        function App() {
+            return <EmailForm />;
+        }
+
+        // Render the main app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
