@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Book Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const Header = ({ 
+            title = "Address Book Dashboard", 
+            subtitle = "Enter an email address to get started",
+            showBackButton = false,
+            backButtonText = "← Back to Login",
+            backButtonUrl = "../index.html"
+        }) => {
+            return (
+                <div className="header">
+                    {showBackButton && (
+                        <button 
+                            className="back-button" 
+                            onClick={() => window.location.href = backButtonUrl}
+                        >
+                            {backButtonText}
+                        </button>
+                    )}
+                    <h1>{title}</h1>
+                    <p>{subtitle}</p>
+                </div>
+            );
+        };
+
+        const UserInfo = ({ user }) => {
+            if (!user) return null;
+            
+            return (
+                <div className="user-info">
+                    <h3>Current User</h3>
+                    <p><strong>Email:</strong> {user.email}</p>
+                    <p><strong>User ID:</strong> {user.id}</p>
+                    {user.name && <p><strong>Name:</strong> {user.name}</p>}
+                </div>
+            );
+        };
+
+        const AddressItem = ({ address, onEdit, onDelete }) => {
+            return (
+                <div className="address-item">
+                    <div className="address-content">
+                        <h4>{address.label || 'Address'}</h4>
+                        <p>{address.street}</p>
+                        <p>{address.city}, {address.state} {address.zip}</p>
+                        {address.country && <p>{address.country}</p>}
+                    </div>
+                    <div className="address-actions">
+                        <button className="edit-button" onClick={() => onEdit(address)}>
+                            Edit
+                        </button>
+                        <button className="delete-button" onClick={() => onDelete(address.id)}>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const AddressList = ({ addresses, onEdit, onDelete }) => {
+            if (!addresses || addresses.length === 0) {
+                return (
+                    <div className="no-addresses">
+                        <p>No addresses found</p>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="address-list">
+                    <h3>Your Addresses</h3>
+                    {addresses.map(address => (
+                        <AddressItem 
+                            key={address.id} 
+                            address={address} 
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                        />
+                    ))}
+                </div>
+            );
+        };
+
+        const Message = ({ message, type = 'info', show = false }) => {
+            if (!show) return null;
+            
+            return (
+                <div className={`message ${type}`}>
+                    {message}
+                </div>
+            );
+        };
+
+        const AddressesPage = () => {
+            const { useState, useEffect } = React;
+            
+            const [user, setUser] = useState(null);
+            const [addresses, setAddresses] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [message, setMessage] = useState('');
+            const [messageType, setMessageType] = useState('');
+
+            useEffect(() => {
+                const storedUser = localStorage.getItem('currentUser');
+                if (storedUser) {
+                    try {
+                        const userData = JSON.parse(storedUser);
+                        setUser(userData);
+                        loadUserAddresses(userData.id);
+                    } catch (error) {
+                        console.error('Error parsing stored user data:', error);
+                        redirectToLogin();
+                    }
+                } else {
+                    redirectToLogin();
+                }
+            }, []);
+
+            const redirectToLogin = () => {
+                setMessage('No user session found. Redirecting to login...');
+                setMessageType('error');
+                setTimeout(() => {
+                    window.location.href = '../';
+                }, 2000);
+            };
+
+            const loadUserAddresses = async (userId) => {
+                try {
+                    const response = await fetch(`http://localhost/address_book_api/users/${userId}/addresses/`, {
+                        method: 'GET'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.success && result.data) {
+                        setAddresses(Array.isArray(result.data) ? result.data : [result.data]);
+                    } else {
+                        setAddresses([]);
+                    }
+                } catch (error) {
+                    console.error('Error loading addresses:', error);
+                    setMessage('Error loading addresses. Please try again.');
+                    setMessageType('error');
+                    setAddresses([]);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleEditAddress = (address) => {
+                alert(`Edit address: ${JSON.stringify(address, null, 2)}`);
+            };
+
+            const handleDeleteAddress = async (addressId) => {
+                if (!confirm('Are you sure you want to delete this address?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`http://localhost/address_book_api/users/${user.id}/addresses/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `id=${addressId}`
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        setMessage('Address deleted successfully!');
+                        setMessageType('success');
+                        loadUserAddresses(user.id);
+                    } else {
+                        setMessage('Failed to delete address.');
+                        setMessageType('error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting address:', error);
+                    setMessage('Error deleting address. Please try again.');
+                    setMessageType('error');
+                }
+            };
+
+            if (loading) {
+                return (
+                    <div className="container">
+                        <div className="loading">Loading your addresses...</div>
+                    </div>
+                );
+            }
+
+            if (!user) {
+                return (
+                    <div className="container">
+                        <Message message={message} type={messageType} show={!!message} />
+                    </div>
+                );
+            }
+
+            return (
+                <div className="container">
+                    <Header 
+                        title={`Welcome, ${user.email}`}
+                        subtitle="Manage your addresses below"
+                        showBackButton={true}
+                        backButtonText="← Back to Login"
+                        backButtonUrl="../"
+                    />
+
+                    <UserInfo user={user} />
+
+                    <AddressList 
+                        addresses={addresses}
+                        onEdit={handleEditAddress}
+                        onDelete={handleDeleteAddress}
+                    />
+
+                    <Message message={message} type={messageType} show={!!message} />
+                </div>
+            );
+        };
+
+        ReactDOM.render(<AddressesPage />, document.getElementById('root'));
+    </script>
+</body>
+</html>

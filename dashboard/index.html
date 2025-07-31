@@ -13,10 +13,6 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // Import and combine all components
-        // Note: In a real project, you'd use a bundler like Webpack or Vite
-        
-        // Header Component (from components/Header.js)
         const Header = ({ 
             title = "Address Book Dashboard", 
             subtitle = "Enter an email address to get started",
@@ -40,7 +36,6 @@
             );
         };
 
-        // Message Component (from components/Message.js)
         const Message = ({ message, type = 'info', show = false }) => {
             if (!show) return null;
             
@@ -51,7 +46,6 @@
             );
         };
 
-        // EmailInput Component (from components/inputs/EmailInput.js)
         const EmailInput = ({ 
             email, 
             onChange, 
@@ -76,7 +70,6 @@
             );
         };
 
-        // SubmitButton Component (from components/buttons/SubmitButton.js)
         const SubmitButton = ({ 
             children, 
             loading = false, 
@@ -94,7 +87,6 @@
             );
         };
 
-        // EmailForm Container Component (from components/EmailForm.js)
         const EmailForm = () => {
             const { useState } = React;
             
@@ -135,13 +127,12 @@
                     const result = await response.json();
                     
                     if (result.success && result.data) {
-                        // Store user data in localStorage
+
                         localStorage.setItem('currentUser', JSON.stringify(result.data));
                         
                         setMessage('Login successful! Redirecting to addresses...');
                         setMessageType('success');
                         
-                        // Redirect to addresses page after a short delay
                         setTimeout(() => {
                             window.location.href = './addresses/index.html';
                         }, 1500);
@@ -193,12 +184,10 @@
             );
         };
 
-        // Main App Component
         function App() {
             return <EmailForm />;
         }
 
-        // Render the main app
         ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
